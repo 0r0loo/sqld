@@ -1601,6 +1601,8 @@ SELECT DENSE_RANK() OVER (ORDER BY SAL), EMP.*
 -- 예제 ) 사원들의 급여와 같은 매니저를 두고 있는 사원들의 급여의 합을 구하세요
 --		-> 쪼개면 사원들의 급여, 같은 매니저를 두고 있는 사원들의 급여 합!
 
+SELECT * FROM EMP;
+
 SELECT *
 	FROM EMP E1, (SELECT MGR, SUM(SAL)
 					FROM EMP
