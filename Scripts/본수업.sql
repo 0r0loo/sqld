@@ -1078,11 +1078,11 @@ SELECT *
 -- ROWNUM은 결과 만들어지는 것이 아니라
 --실행순서 : FROM-> WHERE -> SELECT -> ORDER BY
 -- FROM 절에서SELECT 절으로 만들어지면서 번 부터 차례로 만들어짐
-
-					
+				
 -- 셀프조인(계층형쿼리) : 정합의 문제 (테이블과 테이블을 붙였을 때의 문제점)는 해결되지만, 갱신이상이 발생할 수 있음
 -- INSERT UPDATE DELETE(SELECT 빼고) 회사에서 꺼려하는이유란다.
 -- 사용하는 이유가, 식별자이기 때문에 그냥 씀 업데이트 안해도되니깐
+-- 그룹웨어 사용.
 
 SELECT EMPNO, MGR
 	FROM EMP
@@ -1096,7 +1096,7 @@ SELECT EMPNO, MGR
 
 -- LPAD(값, 반복) : 값을 몇 번 반복시켜서 왼쪽(오른쪽 : RPAD) 붙임
 	
-SELECT E1.EMPNO 나,E1.MGR 상사, E2.MGR|| ENAME "순위상사"
+SELECT E1.EMPNO 나,E1.MGR 상사, E2.MGR|| ENAME "2순위상사"
 	FROM EMP E1 JOIN EMP E2
 		ON E1.MGR = E2.EMPNO
 	
@@ -1106,65 +1106,9 @@ SELECT LEVEL EMPNO,MGR
 	CONNECT BY PRIOR EMPNO =MGR
 	ORDER BY 1;
 
-
-SELECT LEVEL, LPAD(' ',4*LEVEL -1 )|| EMPNO, CONNECT_BY_ISLEAF)
-LPAD: MPNO, MGR, CONNECT_BY_ISLEAF
-	FROM EMP
-	START WITH MGR IS NULL
-	CONNECT BY PRIOR EMPNO =MGR
-	ORDER BY 1;
-
-
-
--- 취상위지역방향전게
-ㄴ	SELECT LEVEL EMPNO, MGR
-	FROM EMP	
-			START WITH
-			
---계층형 쿼리
---FROM절 뒤에: 시작점과 이동경로->START WITH CONNECT BY PRIOR
---옵션:LEVEL 1->2(순위)
---    CONNECT_BY_ISLEAF (끝,말단)
---   SYS_CONNECT_BY_PATH (현재의 값을 상위에서 하위로 추적결과)
---    CONNECT_BY_ROOT (최상위 값을 보여줌)
---**LPAD(값,반복):값을 몇번 반복시켜서 왼쪽(오른쪽:RPAD) 붙임
-
-			
-			
-			----- 민지
-			
-			
-			
-			-------- 계층형 쿼리 (SELF JOIN 셀프 조인)------
--- 정합성(테이블을 붙였을 때)의 문제는 해결이 되나, 갱신(UPDATE)이상이 발생할 수 있다.
--- INSERT, DELETE, UPDATE의 이상 (갱신이상때문에 실무에서 사용을 꺼린다) (식별자로 되어있는 경우에만 사용)
--- 사원번호 / 매니저 (사원번호) 
--- 그룹웨어에서 사용.
-SELECT JOB, EMPNO, MGR FROM EMP;
-
-SELECT JOB, EMPNO, MGR FROM EMP
-   WHERE MGR = '7369';
-   
 SELECT E.EMPNO, E.ENAME, E.MGR, M.ENAME, M.MGR
    FROM EMP E, EMP M WHERE E.MGR=M.EMPNO;
-
--- 계층형 쿼리********** 문법 아래:
--- FROM 절 뒤에: 시작점과 이동경로 -> START WITH CONNECT BY PRIOR
--- SELECT 절에 사용: LEVEL(순위 1-> 증가), 
---      CONNECT_BY_ISLEAF(말단?), \
---      SYS_CONNECT_BY_PATH(현재의 값을 상위에서 하위로 추적결과),
---      CONNECT_BY_ROOT(최상위 값을 찾아줌)
-
--- *** LPAD(값, 반복) : 값을 몇 번 반복시켜서 왼쪽(오른쪽:RPAD)에 붙임
-
-SELECT E1.EMPNO 나, E1.ENAME, E1.MGR 상사, E2.ENAME, E2.MGR "2순위상사"
-   FROM EMP E1 JOIN EMP E2
-      ON E1.MGR = E2.EMPNO;
-
-SELECT * FROM EMP;
-
-
--- 위에 복잡하죠..
+  
 -- 최상위 직원부터 "순방향 전개"
 SELECT LEVEL ,EMPNO, MGR
    FROM EMP
@@ -1201,7 +1145,6 @@ SELECT LEVEL, EMPNO, MGR, CONNECT_BY_ISLEAF
       START WITH EMPNO = 7369
       CONNECT BY PRIOR MGR = EMPNO;
       
-
 ------ 최상위 값, 현재값의 추적 값들
 SELECT LEVEL, LPAD(' ',3*LEVEL-1) || EMPNO 사원번호, 
        MGR, CONNECT_BY_ISLEAF 말단여부,
@@ -1211,59 +1154,6 @@ SELECT LEVEL, LPAD(' ',3*LEVEL-1) || EMPNO 사원번호,
    START WITH MGR IS NULL
    CONNECT BY MGR = PRIOR EMPNO
    ORDER BY 1;
-  
-  ------ 민지
-			
-			
-			
-SELECT E1.EMPNO 나,E1.MGR 상사, E2.MGR || E2.ENAME "2순위상상"
-FROM EMP E1 JOIN EMP E2
-ON E1.MGR = E2.EMPNO;
-
-SELECT E1.EMPNO, E1.MGR, E2.EMPNO, E2.MGR, E2.ENAME
-	FROM EMP E1 JOIN EMP E2
-	ON E1.MGR = E2.EMPNO;
-
-SELECT LEVEL, EMPNO, MGR
-FROM EMP
-START WITH MGR IS NULL
-CONNECT BY PRIOR EMPNO = MGR--CONNECT BY MGR=PRIOR EMPNO;(같음)
-ORDER BY 1;
-
-SELECT LEVEL, LPAD('   ',4*LEVEL-1)||EMPNO, MGR, CONNECT_BY_ISLEAF 
-FROM EMP
-START WITH MGR IS NULL
-CONNECT BY PRIOR EMPNO =MGR
-ORDER BY 1;
-
---7566의 하위 직원들을 보고싶다.
-SELECT LEVEL, LPAD('  ',4*LEVEL-1)||EMPNO, MGR ,CONNECT_BY_ISLEAF 
-FROM EMP
-START WITH MGR ='7566'
-CONNECT BY MGR=PRIOR EMPNO
-ORDER BY 1;
-
---최상위 직원부터 순방향 전개
-
-SELECT LEVEL, EMPNO, MGR
-FROM EMP
-START WITH MGR IS NULL
-CONNECT BY PRIOR EMPNO =MGR
-ORDER BY 1;
-
---최상위 직원부터 역방향 전개
-SELECT LEVEL, EMPNO, MGR
-FROM EMP
-START WITH EMPNO='7369'
-CONNECT BY PRIOR MGR = EMPNO;
-
---최상위 값, 현재값의 추적값들
-SELECT LEVEL, LPAD('  ',4*LEVEL-1)||EMPNO, MGR ,CONNECT_BY_ISLEAF,
-  CONNECT_BY_ROOT EMPNO "최상위 사원",SYS_CONNECT_BY_PATH(EMPNO,">") 경로
-FROM EMP
-START WITH MGR IS NOT NULL
-CONNECT BY MGR =PRIOR EMPNO
-ORDER BY 1;
 
 -- 20190130 -- 서브쿼리
 -- 서브쿼리
