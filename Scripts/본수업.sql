@@ -112,11 +112,12 @@ SELECT * FROM DUAL; -- DUAL 더미테이블 : 문법을 맞추기 위해서 사�
 -- A a = NEW a();
 -- if(a == null){};
 SELECT * FROM EMP;
-SELECT * FROM EMP WHERE NOT (SAL >= '1250'); -- SAL이 2000 이상 값 조회
-SELECT * FROM EMP WHERE (SAL > '1250'); -- 9 SAL이 2000 초과 값 조회
-SELECT * FROM EMP WHERE SAL <= '1250'; -- 5 SAL이 2000 이하 값 조회
-SELECT * FROM EMP WHERE SAL < '1250'; -- 3 SAL이 2000 미만 값 조회
-SELECT * FROM EMP WHERE SAL = '1250'; -- 2 SAL이 1500 같은 값 조회
+SELECT * FROM EMP WHERE NOT (SAL >= '1250'); -- SAL이 1250 미만 값 조회
+SELECT * FROM EMP WHERE (SAL >= '1250'); -- SAL이 1250 이상 값 조회
+SELECT * FROM EMP WHERE (SAL > '1250'); -- 9 SAL이 1250 초과 값 조회
+SELECT * FROM EMP WHERE SAL <= '1250'; -- 5 SAL이 1250 이하 값 조회
+SELECT * FROM EMP WHERE SAL < '1250'; -- 3 SAL이 1250 미만 값 조회
+SELECT * FROM EMP WHERE SAL = '1250'; -- 2 SAL이 1250 같은 값 조회
 -- DB에서는 자동형변환이 일어남(원쿼테이션으로 안 해도 괜찮은데 하는게 좋아)
 -- 이거할거였으면 시작도 안함ㅋ
 -- AND를 부정하면 OR, DB는 결과를 예측할 수 없어서 조심해야돼, 통계정보가 아예 달라질 수 있음
@@ -144,10 +145,22 @@ SELECT *
         
 SELECT * FROM EMP -- 12명
     WHERE NOT (DEPTNO = '20' AND JOB ='CLERK');
+   
 SELECT * FROM EMP -- 12명
     WHERE DEPTNO != '20' OR JOB != 'CLERK';
 -- NOT은 연산자까지 부정함
 
+-- cf)
+SELECT * FROM EMP
+    WHERE DEPTNO != '20' AND JOB !='CLERK';
+
+SELECT * FROM EMP
+    WHERE DEPTNO = '20';
+ 
+SELECT * FROM EMP;
+
+
+   
 -- 부정연산자
 -- != ^= <> NOT(다 부정하기때문에 애매하지만 여기 붙여줄게, 무조건 컬럼 앞에 있어야함)
 SELECT *
@@ -344,12 +357,12 @@ SELECT LOWER('LEX'), EMPLOYEES.* FROM EMPLOYEES;
 -- SIGN
 -- MOD
 SELECT * FROM DUAL; -- 더미 테이블 생성
-SELECT TRUNC(3.145), TRUNC(3.145, 1) FROM DUAL;
-SELECT ROUND(3.51515), ROUND(3.51515,4) FROM DUAL;
+SELECT TRUNC(3.145), TRUNC(3.145, 2) FROM DUAL;
+SELECT ROUND(3.51515), ROUND(3.515156,4) FROM DUAL;
 -- CEIL(최근접 최상위 정수값), FLOOR(최근접 최하위 정수값)
 SELECT CEIL(3.14), CEIL(-3.14) FROM DUAL;
 SELECT FLOOR(3.14), FLOOR(-3.14) FROM DUAL;
-SELECT MOD(10,3) FROM DUAL; --10%3;
+SELECT MOD(10,4) FROM DUAL; --10%3;
 -- 자! 이제 시작이야
 -- 날짜형 함수 되게 되게 많이쓴다
 -- 일정게시판 만들 때 무너지지마!!!
@@ -385,7 +398,7 @@ SELECT TO_DATE('20190222') FROM DUAL; -- 최소 년월일이 적혀있어야 변
 -- 책에 있는 친구
 SELECT TO_CHAR(3654.158,'$999.999') FROM DUAL; --###으로 나오지롱
 SELECT TO_CHAR(3654.158,'$9,999.999') FROM DUAL; -- 패턴 레이아웃
-SELECT TO_CHAR(3654.158,'L999,999.9999999') FROM DUAL; -- 원화표시
+SELECT TO_CHAR(3654.158,'L999,999.9999999') "$" FROM DUAL; -- 원화표시
 ------------------------------------------------------------
 -- 240
 -- IF문과 같은 문법 디비는 바디가 없으므로 CASE WHEN THEN ELSE END
@@ -422,17 +435,23 @@ SELECT *
 -- } // 다중 IF문
 
 -- ORACLE에만 있는 문법 : DECODE(컬럼, 비교할 값, 참, 거짓) ANSI 표준은 아님 SEARCHED가 안됨, 스위치 문 같음
-SELECT DECODE(C_CHAR,'A   ', 'TRUE', 'FALSE'), -- 객체화되어서 올라가므로 리터럴이 아님 그래서 안됨
-    DECODE(C_VARCHAR2,'A', 'TRUE', 'FALSE')        
+SELECT
+	C_CHAR,
+	C_VARCHAR2,
+	DECODE(C_CHAR,'A   ', 'TRUE', 'FALSE'), -- 객체화되어서 올라가므로 리터럴이 아님 그래서 안됨
+    DECODE(C_CHAR,'A', 'TRUE', 'FALSE'),        
+    DECODE(C_VARCHAR2,'A', 'TRUE', 'FALSE'),        
     DECODE(C_VARCHAR2,'A    ', 'TRUE', 'FALSE')        
     FROM HAPPY; -- 이거 테이블 두개 만들어서 비교해봐
 --
 SELECT * FROM HAPPY WHERE C_CHAR='A'; -- 얘는 리터럴이라서 가능
-SELECT * FROM HAPPY WHERE C_CHAR='A    '; -- 얘는 리터럴이라서 가능
+SELECT * FROM HAPPY WHERE C_CHAR='A         '; -- 얘는 리터럴이라서 가능
+
+SELECT * FROM HAPPY WHERE C_VARCHAR2='A   ';
 -- CASE WHEN THEN ELSE
 -- 1:1로 비교하는 것 SIMPLE CASE 방법 사용
 -- DECODE(C_VARCHAR2,'A    ', 'TRUE', 'FALSE')        
-SELECT CASE C_VARCHAR2 WHEN 'A   ' THEN 'TRUE' ELSE 'FALSE' END
+SELECT CASE C_VARCHAR2 WHEN 'A  ' THEN 'TRUE' ELSE 'FALSE' END
     FROM HAPPY;
 -- SAL 1250이라면 '상', 950 이상이라면 '중' 그 외의 인원은 '하'
 SELECT ENAME, SAL,
@@ -452,7 +471,11 @@ SELECT EMP.*,
 SELECT EMP.*,
     CASE WHEN COMM IS NULL THEN 'EMPTY' ELSE 'COMM' END
     FROM EMP;
-    
+   
+SELECT EMP.*,
+    CASE COMM WHEN NULL THEN 'EMPTY' ELSE 'COMM' END
+    FROM EMP;
+   
 -- CASE 중첩, CASE
 -- 사원 정보에서 급여가 2000이상이라면 보너스는 1000
 -- 1000 이상이라면 500
@@ -524,7 +547,7 @@ FROM EMP;
 -- 246---------------------------------------------------------------------------------
 -- NULL의 특징, 함수(NVL, NULLIF, COALESCE)
 -- NULL의 특징 : 연산을 하면 결과는 다 NULL, 비교하면 FALSE
--- NUL과 CONCATENATION -> 값이 나온다.
+-- NULL과 CONCATENATION -> 값이 나온다.
 SELECT COMM, COMM * 30
     FROM EMP WHERE SAL > NULL; -- 공집합
     
@@ -551,7 +574,7 @@ SELECT * FROM EMP WHERE COMM IS NULL; -- NULL을 확인하는 방법은 IS NULL
 -- 윈도우 10 확장자 연결 기본앱을 지워버려요.
 -- NVL = MYSQL에서는  ISNULL : 만약에 컬럼의 값이 NULL이라면 치환, NULLIF
 -- NULLIF : 컬럼1, 컬럼2 컬럼1=컬럼2 같다면 NULL 아니면 컬럼1 // 가입년도 따지는 경우에 주로 사용함
-SELECT EMP.*, NVE(COMM,0)  FROM EMP; -- 얘를 사용하는 이유 NULL인 경우 연산이 되지 않음, 미지의 값이므로 계산대상에서 빠져버리므로 통계정보가 완전히 달라져버림
+SELECT EMP.*, NVL(COMM,0)  FROM EMP; -- 얘를 사용하는 이유 NULL인 경우 연산이 되지 않음, 미지의 값이므로 계산대상에서 빠져버리므로 통계정보가 완전히 달라져버림
 -- NULL으로 하는경우 하도급업체 때문에 우리가 비용을 지불하진 않지만, 통계를 낼 때 어떻게 낼 지 선택할 수 있게 됨
 SELECT AVG(COMM), -- NULL을 제외한 계산
     AVG(NVL(COMM,0)), -- 디비는 객체가 아니므로 모두 아규먼트로 처리함
@@ -667,7 +690,7 @@ SELECT "POSITION", TRUNC(AVG(HEIGHT))
 -- 5. 집계함수인 SUM을 사용해서 급여를 집계함
 --------------------------- 내가 한 거
 SELECT * FROM EMP;
-SELECT EMPNO, ENAME,SAL,
+SELECT EMPNO, ENAME, SAL,
     EXTRACT(MONTH FROM HIREDATE) -- 숫자01 -> 1
     FROM EMP;
 
@@ -766,9 +789,7 @@ SELECT "POSITION", AVG(HEIGHT)
     FROM PLAYER
         WHERE "POSITION" IS NOT NULL
             GROUP BY "POSITION";
-    
-    
-        
+       
 -- 포지션별 평균키 가로 <-> 세로
 SELECT 
     AVG(CASE "POSITION" WHEN 'GK' THEN HEIGHT ELSE 0 END) "GK",
@@ -816,8 +837,8 @@ SELECT EMP.*, ROWNUM FROM EMP WHERE ROWNUM <=3;
 SELECT EMP.*, ROWNUM FROM EMP WHERE ROWNUM =3; -- 1과 2가 없으므로 생성이 되지 않음
 -- SAL기준으로 상위 3명만 출력하고 싶다.
 -- RANK(), DENSE_RANK() :     10 20 30 40
--- RABK()                   5  4  2  2  Q
--- DENSERAMK               4  3  2  2  1
+-- RANK()                   5  4  2  2  1
+-- DENSE_RANK()               4  3  2  2  1
 
 -- SELECT ROWUM FROM EMP ORDER BY SAL DESC,EMPNO];
 SELECT ROWNUM, K.*
@@ -830,7 +851,8 @@ SELECT ROWNUM, K.*
 -- 회사에서는 3정규화까지, 보이스코드 정규화
 -- &CASE코막*KOMAR_데이터
 --IQ / STREMA 객체를 잘 알아야함
-WHR--JOIN
+
+--JOIN
 -- 조건(equo join:  1 대 1조인)
 -- PK.식별자(무결성제약조건
 -- FK.외래키(다른 테이블의PK이고 연결을 위해서 사용는 컬럼( 자식테이블)
@@ -1252,7 +1274,7 @@ SELECT *
 			WHERE SCHE_DATE BETWEEN 20120501 AND 20120502;
 			
 -- 책에서는 연관 서브 쿼리를 이용해서 풀고 있음. EXISTS
-SELECT *
+SELECT STADIUM_ID, STADIUM_NAME
 	FROM STADIUM ST
 		WHERE EXISTS(SELECT 'XX'
 						FROM SCHEDULE SC
@@ -1319,6 +1341,8 @@ DROP VIEW YOUNGJAE_TABLE;
 --> 통계함수를 만들어 줌(소계, 총계, N과 N의 소계)
 -- ROLLUP은 : 선택된 컬럼의 소계를 나타냄(DNAME, JOB) -> DNAME에 묶여있는 JOB, DNAME, 전체 
 
+SELECT ENAME, DEPTNO, COUNT(*) OVER(ORDER BY SAL) FROM EMP;
+
 -- 예제 ) 부서명과 업무명을 기준으로 사원수와 급여합을 집계
 -- ROLLUP(DEPTNO) -> DEPTNO의 소계를 출력
 SELECT DEPTNO, COUNT(*), SUM(SAL)
@@ -1337,7 +1361,6 @@ SELECT JOB, DNAME, SUM(SAL)
 		USING(DEPTNO)
 	GROUP BY JOB, ROLLUP(JOB,DNAME)
 		ORDER BY DNAME;
-		
 		
 SELECT DNAME, SUM(SAL), COUNT(*)
 	FROM EMP E, DEPT D
@@ -1405,7 +1428,7 @@ SELECT DNAME, JOB, MGR,COUNT(*), SUM(SAL)
 		GROUP BY ROLLUP(DNAME, JOB, MGR) -- 3개 묶인거 -> 두개 묶인거 -> 1개 묶인거 각각의 통계 다나옴
 		ORDER BY DNAME;	
 	
-SELECT DNAME, JOB, MGR,COUNT(*), SUM(SAL)
+SELECT DNAME, JOB, MGR, COUNT(*), SUM(SAL)
 	FROM NEWEMP
 		GROUP BY ROLLUP(DNAME, (JOB, MGR)) -- 3개 묶인거 -> 두개 묶인거 -> 1개 묶인거
 		ORDER BY DNAME;
@@ -1666,6 +1689,10 @@ SELECT ENAME, SAL, TRUNC(RATIO_TO_REPORT(SAL) OVER() * 100) RATIO,
 		TRUNC(CUME_DIST() OVER(ORDER BY SAL DESC)*100) CUME
 FROM EMP;
 
+SELECT ENAME, SAL, RATIO_TO_REPORT(SAL) OVER() RATIO,
+		PERCENT_RANK() OVER(ORDER BY SAL) PERCENT,
+		CUME_DIST() OVER(ORDER BY SAL DESC)*100 CUME
+FROM EMP;
 
 -- DCL(DATABASE CONTOL LANGEAGE) : 권한(GRANT), 회수(REVORK), COMMIT(적용), ROLLBACK(취소)
 -- DDL(DATABASE DEFINED LANGEAGE) : 생성(CREATE), 삭제(DROP), 변경(ALTER)
